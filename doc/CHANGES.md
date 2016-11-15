@@ -3,6 +3,7 @@
 ## Highlighted Features
 
 * Prevent long authority names overflowing on statistics page (Gareth Rees)
+* Added a data export task to help with research (Alex Parsons)
 
 ## Upgrade Notes
 
