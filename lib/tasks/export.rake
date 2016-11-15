@@ -66,6 +66,7 @@ def csv_export(model, query=nil, header=nil, override={})
   filename = "exports/#{model.name}-#{now}.csv"
   FileUtils.mkdir_p('exports')
   puts "exporting to: #{filename}"
+
   CSV.open(filename, "wb") do |csv|
     csv << header
     query.each do |item|
@@ -140,9 +141,12 @@ task :research_export => :environment do
               "info_request_batch_id"
              ])
 
-  #export incoming messages - only where normal prominence, allow name_censor to some fields
+  #export incoming messages - only where normal prominence,
+  # allow name_censor to some fields
   csv_export(IncomingMessage,
-             IncomingMessage.includes(:info_request).where(prominence:"normal").where("info_requests.prominence = ?","normal"),
+             IncomingMessage.includes(:info_request).
+               where(prominence:"normal").
+               where("info_requests.prominence = ?","normal"),
              ["id",
               "info_request_id",
               "created_at",
@@ -162,7 +166,9 @@ task :research_export => :environment do
 
   #export incoming messages - only where normal prominence, allow name_censor to some fields
   csv_export(OutgoingMessage,
-             OutgoingMessage.includes(:info_request).where(prominence:"normal").where("info_requests.prominence = ?","normal"),
+             OutgoingMessage.includes(:info_request).
+                             where(prominence:"normal").
+                             where("info_requests.prominence = ?","normal"),
              ["id",
               "info_request_id",
               "created_at",
@@ -179,7 +185,8 @@ task :research_export => :environment do
 
   #export incoming messages - only where normal prominence, allow name_censor to some fields
   csv_export(FoiAttachment,
-             FoiAttachment.joins(incoming_message: :info_request).where("info_requests.prominence = ?","normal"),
+             FoiAttachment.joins(incoming_message: :info_request).
+                           where("info_requests.prominence = ?","normal"),
              ["id",
               "content_type",
               "filename",
