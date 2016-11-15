@@ -42,23 +42,25 @@ def case_insensitive_user_censor(text, user)
   end
 end
 
+# Returns a lambda to pass to export function that censors x.property
 def name_censor_lambda(property)
-  #return a lambda to pass to export function that censors x.property
-  return lambda {|x| case_insensitive_user_censor(x.send(property),x.info_request.user)}
+  lambda do |x|
+    case_insensitive_user_censor(x.send(property), x.info_request.user)
+  end
 end
 
-def csv_export(model, query=nil, header=nil, override={})
-  # exports a models, can be limited to certain records by passing in query
-  # restrict records to export using query
-  # restrict columns to export using header
-  # use override to pass in lambdas that modify particular column based on other values in the row
-  if query == nil
-    query = model.all
-  end
 
-  if header == nil
-    header = model.column_names
-  end
+# Exports a model
+#
+# query    - a query used to limit the export to matching records
+# header   - used to restrict exported columns
+# override - pass in lambdas to modify a given column based on values in the row
+#
+# Returns a String
+def csv_export(model, query=nil, header=nil, override={})
+  # set query and header to default values unless supplied
+  query = model.all unless query
+  header = model.column_names unless header
 
   now = Time.now.strftime("%d-%m-%Y")
   filename = "exports/#{model.name}-#{now}.csv"
@@ -68,7 +70,7 @@ def csv_export(model, query=nil, header=nil, override={})
     csv << header
     query.each do |item|
       line  = []
-      for h in header
+      header.each do |h|
         if override.key?(h) #do we have an override for this column?
           line.append(override[h][item]) #if so send to lambda
         else
@@ -79,7 +81,6 @@ def csv_export(model, query=nil, header=nil, override={})
     end
   end
 end
-
 
 
 desc 'exports all non-personal information to export folder'
