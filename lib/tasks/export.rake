@@ -19,7 +19,7 @@ class PublicBodyCategoryTranslation < ActiveRecord::Base
 end
 
 class PublicBodyHeadingTranslation < ActiveRecord::Base
-  self.table_name = "public_body_category_translations"
+  self.table_name = "public_body_heading_translations"
   belongs_to :public_body_heading
 end
 
