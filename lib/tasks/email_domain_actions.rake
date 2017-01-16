@@ -8,24 +8,7 @@ namespace :email_domain_actions do
 
     from = ENV["START_DATE"]
 
-    sql = if from
-      "SELECT substring(email, position('@' in email)+1) AS domain, " \
-      "COUNT(id) AS count " \
-      "FROM users " \
-      "WHERE admin_level = 'none' AND created_at >= '#{from}' " \
-      "GROUP BY domain " \
-      "ORDER BY count DESC " \
-      "LIMIT 20"
-    else
-      "SELECT substring(email, position('@' in email)+1) AS domain, " \
-      "COUNT(id) AS count " \
-      "FROM users " \
-      "WHERE admin_level = 'none' " \
-      "GROUP BY domain " \
-      "ORDER BY count DESC " \
-      "LIMIT 20"
-    end
-    results = User.connection.select_all(sql)
+    results = UserStats.list_user_domains(from)
 
     column1_width = results.map { |x| x["domain"].length }.sort.last
 
