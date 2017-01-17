@@ -38,18 +38,20 @@ class UserStats
     # null values otherwise this will unexpectedly return 0
     # (see http://stackoverflow.com/a/19528722) this should not be a thing but
     # is happening on WDTK with the info_requests table for some reason
-    sql = "SELECT count(*) FROM users " \
-          "WHERE id NOT IN ( " \
-          "  SELECT DISTINCT user_id FROM info_requests " \
-          "  WHERE user_id IS NOT NULL " \
-          ") AND id NOT IN ( " \
-          "  SELECT DISTINCT tracking_user_id FROM track_things " \
-          "  WHERE tracking_user_id IS NOT NULL " \
-          ") AND id NOT IN ( " \
-          "  SELECT DISTINCT user_id FROM comments " \
-          "  WHERE user_id IS NOT NULL " \
-          ") AND email LIKE '%@#{domain}'"
-    sql += "AND created_at >= '#{start_date}'" if start_date
+    sql = <<-eos
+      SELECT count(*) FROM users
+      WHERE id NOT IN (
+        SELECT DISTINCT user_id FROM info_requests
+        WHERE user_id IS NOT NULL
+      ) AND id NOT IN (
+        SELECT DISTINCT tracking_user_id FROM track_things
+        WHERE tracking_user_id IS NOT NULL
+      ) AND id NOT IN (
+        SELECT DISTINCT user_id FROM comments
+        WHERE user_id IS NOT NULL
+      ) AND email LIKE '%@#{domain}'
+    eos
+    sql += " AND created_at >= '#{start_date}'" if start_date
     User.connection.select_all(sql).first["count"].to_i
   end
 
