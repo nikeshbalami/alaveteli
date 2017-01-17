@@ -86,4 +86,41 @@ describe UserStats do
 
   end
 
+  describe ".unbanned_by_domain" do
+    before do
+      Delorean.time_travel_to "1 month ago"
+      @user1 = FactoryGirl.create(:user, :email => "test@example.com")
+      @banned = FactoryGirl.create(:user,
+                                   :email => "banned@example.com",
+                                   :ban_text => "Banned")
+
+      Delorean.back_to_the_present
+      @user2 = FactoryGirl.create(:user, :email => "newbie@example.com")
+      @admin = FactoryGirl.create(:admin_user, :email => "admin@example")
+    end
+
+    it "returns a list of eligible users" do
+      expect(UserStats.unbanned_by_domain("example.com").count).to eq(2)
+    end
+
+    it "does not include admins" do
+      expect(UserStats.unbanned_by_domain("example.com")).to_not include(@admin)
+    end
+
+    it "does not include banned users" do
+      expect(UserStats.unbanned_by_domain("example.com")).to_not include(@banned)
+    end
+
+    context "when given a start date" do
+
+      it "only returns data for signups created since the start date" do
+        last_week = Time.zone.now - 1.week
+        expect(UserStats.unbanned_by_domain("example.com", last_week)).
+          to eq([@user2])
+      end
+
+    end
+
+  end
+
 end
