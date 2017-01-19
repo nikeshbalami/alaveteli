@@ -1063,13 +1063,13 @@ describe InfoRequest do
     end
 
     it 'accepts a summary with ascii characters' do
-      info_request = InfoRequest.new(:title => 'abcde')
+      info_request = InfoRequest.new(:title => 'Abcde')
       info_request.valid?
       expect(info_request.errors[:title]).to be_empty
     end
 
     it 'accepts a summary with unicode characters' do
-      info_request = InfoRequest.new(:title => 'кажете')
+      info_request = InfoRequest.new(:title => 'Кажете')
       info_request.valid?
       expect(info_request.errors[:title]).to be_empty
     end
@@ -1079,6 +1079,18 @@ describe InfoRequest do
       info_request.valid?
       expect(info_request.errors[:title]).
         to include("Please write a summary with some text in it")
+    end
+
+    it 'accepts a summary of numbers and lower case' do
+      info_request = InfoRequest.new(:title => '999 calls')
+      info_request.valid?
+      expect(info_request.errors[:title]).to be_empty
+    end
+
+    it 'accepts all upper case single words' do
+      info_request = InfoRequest.new(:title => 'HMRC')
+      info_request.valid?
+      expect(info_request.errors[:title]).to be_empty
     end
 
     it 'rejects a summary which is more than 200 chars long' do
@@ -1109,6 +1121,14 @@ describe InfoRequest do
 
     it 'rejects a summary which is not a mix of upper and lower case' do
       info_request = InfoRequest.new(:title => 'lorem ipsum')
+      info_request.valid?
+      expect(info_request.errors[:title]).
+        to include("Please write the summary using a mixture of capital and " \
+                   "lower case letters. This makes it easier for others to read.")
+    end
+
+    it 'rejects short summaries which are not a mix of upper and lower case' do
+      info_request = InfoRequest.new(:title => 'test')
       info_request.valid?
       expect(info_request.errors[:title]).
         to include("Please write the summary using a mixture of capital and " \
@@ -1155,7 +1175,7 @@ describe InfoRequest do
     end
 
     it 'computes a hash' do
-      @info_request = InfoRequest.new(:title => "testing",
+      @info_request = InfoRequest.new(:title => "Testing",
                                       :public_body => public_bodies(:geraldine_public_body),
                                       :user_id => 1)
       @info_request.save!
@@ -1275,7 +1295,7 @@ describe InfoRequest do
     it "recognises l and 1 as the same in incoming emails" do
       # Make info request with a 1 in it
       while true
-        ir = InfoRequest.new(:title => "testing", :public_body => public_bodies(:geraldine_public_body),
+        ir = InfoRequest.new(:title => "Testing", :public_body => public_bodies(:geraldine_public_body),
                              :user => users(:bob_smith_user))
         ir.save!
         hash_part = ir.incoming_email.match(/-[0-9a-f]+@/)[0]
@@ -2109,7 +2129,7 @@ describe InfoRequest do
 
     context "a request" do
 
-      let(:request) { InfoRequest.create!(:title => "my request",
+      let(:request) { InfoRequest.create!(:title => "My request",
                                           :public_body => public_bodies(:geraldine_public_body),
                                           :user => users(:bob_smith_user)) }
 
