@@ -5,7 +5,11 @@ namespace :users do
   task :count_per_domain => :environment do
     from = ENV["START_DATE"]
 
-    results = UserStats.list_user_domains(from)
+    results = if from
+      UserStats.list_user_domains(:start_date => from)
+    else
+      UserStats.list_user_domains
+    end
 
     column1_width = results.map { |x| x["domain"].length }.sort.last
 

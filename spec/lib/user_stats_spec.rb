@@ -39,7 +39,7 @@ describe UserStats do
         expected = [
           { "domain" => "example.com", "count" => "1" }
         ]
-        expect(UserStats.list_user_domains(Time.zone.now - 2.weeks)).
+        expect(UserStats.list_user_domains(:start_date => 2.weeks.ago)).
           to eq(expected)
       end
 
@@ -56,7 +56,7 @@ describe UserStats do
 
       it "limits the length of the results" do
         expect(UserStats.list_user_domains.count).to eq(5)
-        expect(UserStats.list_user_domains(nil, 4).count).to eq(4)
+        expect(UserStats.list_user_domains(:limit => 4).count).to eq(4)
       end
 
     end
