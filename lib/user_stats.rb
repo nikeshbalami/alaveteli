@@ -34,10 +34,10 @@ class UserStats
     # rewrite this using the ORM
     # example code here: http://stackoverflow.com/a/23389130), until then...
     #
-    # Reminder - check that the returned ids in the subquery does not include
-    # null values otherwise this will unexpectedly return 0
-    # (see http://stackoverflow.com/a/19528722) this should not be a thing but
-    # is happening on WDTK with the info_requests table for some reason
+    # If extending this query, remember to check that the returned ids in the
+    # subquery do not include null values otherwise it will unexpectedly return 0
+    # (see http://stackoverflow.com/a/19528722) this behaviour has been
+    # observed with the info_requests table
     sql = <<-eos
       SELECT count(*) FROM users
       WHERE id NOT IN (
