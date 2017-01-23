@@ -64,22 +64,33 @@ describe UserStats do
   end
 
   describe ".count_dormant_users" do
+    before do
+      Delorean.time_travel_to(2.weeks.ago) do
+        requester = FactoryGirl.create(:user, :email => "active@example.com")
+        commenter = FactoryGirl.create(:user, :email => "commenter@example.com")
+        tracker = FactoryGirl.create(:user, :email => "tracker@example.com")
+        dormant = FactoryGirl.create(:user, :email => "dormant1@example.com")
+
+        request = FactoryGirl.create(:info_request, :user => requester)
+        comment = FactoryGirl.create(:comment, :body => "hi!",
+                                               :user => commenter,
+                                               :info_request => request)
+        track = FactoryGirl.create(:search_track,
+                                   :tracking_user => tracker)
+      end
+
+      FactoryGirl.create(:user, :email => "dormant2@example.com")
+    end
 
     it "returns the dormant user count for the domain" do
-      expect(UserStats.count_dormant_users("localhost")).to eq(2)
+      expect(UserStats.count_dormant_users("example.com")).to eq(2)
     end
 
     context "when passed a start date" do
 
-      before do
-        Delorean.time_travel_to "2 days ago"
-        FactoryGirl.create(:user, :email => "newbie@localhost")
-        Delorean.back_to_the_present
-      end
-
       it "only returns data for signups created since the start date" do
-        last_week = Time.zone.now - 1.week
-        expect(UserStats.count_dormant_users("localhost", last_week)).to eq(1)
+        expect(UserStats.count_dormant_users("example.com", 1.week.ago)).
+          to eq(1)
       end
 
     end
