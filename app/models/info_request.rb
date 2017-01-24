@@ -169,6 +169,13 @@ class InfoRequest < ActiveRecord::Base
      _("Other")]
   end
 
+  def report_comment_reasons
+    [_("Comment contains defamatory material"),
+     _("Comment contains personal information"),
+     _("Vexatious comment")
+    ]
+  end
+
   def must_be_valid_state
     unless InfoRequest.enumerate_states.include?(described_state)
       errors.add(:described_state, "is not a valid state")
