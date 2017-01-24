@@ -23,6 +23,11 @@ class ReportsController < ApplicationController
 
   def new
     @info_request = InfoRequest.find_by_url_title!(params[:request_id])
+    if params[:comment_id]
+      if @info_request.comments.map(&:id).include?(params[:comment_id].to_i)
+        @comment = Comment.find(params[:comment_id])
+      end
+    end
     if authenticated?(
         :web => _("To report this request"),
         :email => _("Then you can report the request '{{title}}'", :title => @info_request.title),

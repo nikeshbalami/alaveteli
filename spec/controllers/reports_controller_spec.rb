@@ -92,9 +92,41 @@ describe ReportsController, "#new_report_request" do
     before :each do
       session[:user_id] = users(:bob_smith_user).id
     end
+
     it "should show the form" do
       get :new, :request_id => info_request.url_title
       expect(response).to render_template("new")
+    end
+
+    it "accepts a comment id" do
+      get :new, :request_id => info_request.url_title, :comment_id => 1
+      expect(response).to render_template("new")
+    end
+
+    context "when passed a comment id" do
+      render_views
+
+      let(:comment) do
+        FactoryGirl.create(:comment, :info_request => info_request,
+                                     :body => "This is a vexations comment")
+      end
+
+      it "ignores the comment id if it does not belong to the request" do
+        new_request = FactoryGirl.create(:info_request)
+        new_comment = FactoryGirl.create(:comment, :info_request => new_request,
+                                                   :body => "Some comment")
+        get :new, :request_id => info_request.url_title,
+                  :comment_id => new_comment.id
+        expect(response.body).to match(info_request.report_reasons.first)
+      end
+
+      it "alters the reasons dropdown if comment id is valid" do
+        get :new, :request_id => info_request.url_title,
+                  :comment_id => comment.id
+        expect(response.body).
+          to match(info_request.report_comment_reasons.first)
+      end
+
     end
   end
 end
