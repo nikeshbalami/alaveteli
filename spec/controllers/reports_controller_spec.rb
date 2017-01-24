@@ -79,14 +79,11 @@ describe ReportsController, "when reporting a request (logged in)" do
 end
 
 describe ReportsController, "#new_report_request" do
-  let(:info_request) { mock_model(InfoRequest, :url_title => "foo") }
-  before :each do
-    expect(InfoRequest).to receive(:find_by_url_title!).with("foo").and_return(info_request)
-  end
+  let(:info_request) { FactoryGirl.create(:info_request, :title => "foo") }
 
   context "not logged in" do
     it "should require the user to be logged in" do
-      get :new, :request_id => "foo"
+      get :new, :request_id => info_request.url_title
       expect(response).not_to render_template("new")
     end
   end
@@ -96,7 +93,7 @@ describe ReportsController, "#new_report_request" do
       session[:user_id] = users(:bob_smith_user).id
     end
     it "should show the form" do
-      get :new, :request_id => "foo"
+      get :new, :request_id => info_request.url_title
       expect(response).to render_template("new")
     end
   end
