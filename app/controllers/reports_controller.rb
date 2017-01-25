@@ -2,8 +2,21 @@
 class ReportsController < ApplicationController
   def create
     @info_request = InfoRequest.find_by_url_title!(params[:request_id])
+    if params[:comment_id]
+      if @info_request.comments.map(&:id).include?(params[:comment_id].to_i)
+        @comment = Comment.find(params[:comment_id])
+      end
+    end
     @reason = params[:reason]
-    @message = params[:message]
+    @message = if @comment
+      extra_information = _("The user wishes to draw attention to the " \
+                              "comment: {{comment_url}}",
+                              :comment_url => comment_url(@comment))
+      "#{params[:message]}\n\n#{extra_information}"
+    else
+      params[:message]
+    end
+
     if @reason.empty?
       flash[:error] = _("Please choose a reason")
       render "new"

@@ -37,6 +37,46 @@ describe ReportsController, "when reporting a request (logged in)" do
     expect(ir.described_state).to eq("attention_requested")
   end
 
+  context "when passed a comment id" do
+    let(:request) { FactoryGirl.create(:info_request) }
+    let(:comment) do
+      FactoryGirl.create(:comment, :info_request => request,
+                                   :body => "This is a vexations comment")
+    end
+
+    it "appends a link to the comment to the message if the comment is valid" do
+      allow(InfoRequest).to receive(:find_by_url_title!).
+        with(request.url_title).and_return(request)
+
+      expected = "original message\n\nThe user wishes to draw attention to " \
+                 "the comment: #{controller.comment_url(comment)}"
+
+      expect(request).to receive(:report!).
+        with("my reason", expected, @user)
+
+      post :create, :request_id => request.url_title,
+                    :comment_id => comment.id,
+                    :reason => "my reason",
+                    :message => "original message"
+    end
+
+    it "ignores the comment id if it does not belong to the request" do
+      allow(InfoRequest).to receive(:find_by_url_title!).
+        with(request.url_title).and_return(request)
+
+      new_request = FactoryGirl.create(:info_request)
+      new_comment = FactoryGirl.create(:comment, :info_request => new_request,
+                                                 :body => "Some comment")
+
+      expect(request).to receive(:report!)
+      post :create, :request_id => request.url_title,
+                    :comment_id => new_comment.id,
+                    :reason => "my reason",
+                    :message => "original message"
+    end
+
+  end
+
   it "should pass on the reason and message" do
     info_request = mock_model(InfoRequest, :url_title => "foo", :attention_requested= => nil, :save! => nil)
     expect(InfoRequest).to receive(:find_by_url_title!).with("foo").and_return(info_request)
