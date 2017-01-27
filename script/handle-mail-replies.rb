@@ -8,6 +8,8 @@
 #   bounced address, and will not be sent any more messages.
 # - If a message is identified as an out-of-office autoreply, it is discarded.
 # - Any other messages are forwarded to config.get("FORWARD_NONBOUNCE_RESPONSES_TO")
+#   or config.get("FORWARD_PRO_NONBOUNCE_RESPONSES_TO") depending on whether
+#   they were sent from the normal contact address or the pro one initially.
 
 
 # We want to avoid loading rails unless we need it, so we start by just loading the
@@ -71,7 +73,7 @@ def main(in_test_mode)
     end
 
     # Otherwise forward the message on
-    forward_on(raw_message) unless in_test_mode
+    forward_on(raw_message, message) unless in_test_mode
     return 0
   end
 end
@@ -166,11 +168,24 @@ def is_oof?(message)
   return false
 end
 
-def forward_on(raw_message)
-  IO.popen("/usr/sbin/sendmail -i #{AlaveteliConfiguration::forward_nonbounce_responses_to}", "wb") do |f|
+def forward_on(raw_message, message = nil)
+  forward_to = get_forward_to_address(message)
+  IO.popen("/usr/sbin/sendmail -i #{forward_to}", "wb") do |f|
     f.write(raw_message);
     f.close;
   end
+end
+
+def get_forward_to_address(message)
+  forward_to = AlaveteliConfiguration.forward_nonbounce_responses_to
+  if AlaveteliConfiguration.enable_alaveteli_pro
+    pro_contact_email = AlaveteliConfiguration.pro_contact_email
+    original_to = message ? MailHandler.get_all_addresses(message) : []
+    if original_to.include?(pro_contact_email)
+      forward_to = AlaveteliConfiguration.forward_pro_nonbounce_responses_to
+    end
+  end
+  forward_to
 end
 
 def load_rails
@@ -183,6 +198,8 @@ def record_bounce(email_address, bounce_message)
   User.record_bounce_for_email(email_address, bounce_message)
 end
 
-in_test_mode = (ARGV[0] == "--test")
-status = main(in_test_mode)
-exit(status) if in_test_mode
+if $0 == __FILE__
+  in_test_mode = (ARGV[0] == "--test")
+  status = main(in_test_mode)
+  exit(status) if in_test_mode
+end
